@@ -1,5 +1,6 @@
 package formula
 
+import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
 import formula.Formula.Person
 import magnolia._
@@ -10,20 +11,22 @@ object DeriveForm {
   type Typeclass[A] = Form[A]
 
   def combine[A](caseClass: CaseClass[Form, A]): Form[A] = new Form[A] {
-    override def render(variable: Var[A]): HtmlElement = div(
-      caseClass.parameters.map { param =>
-        param.typeclass
-          .labelled(param.label)
-          .render(
-            variable.zoom(a => param.dereference(a))(value =>
-              caseClass.construct { p =>
-                if (p == param) value
-                else p.dereference(variable.now())
-              }
-            )(unsafeWindowOwner)
-          )
+    private def zoomToParam(variable: Var[A], param: Param[Typeclass, A], owner: Owner): Var[param.PType] =
+      variable.zoom[param.PType](a => param.dereference(a))(value =>
+        caseClass.construct { p =>
+          if (p == param) value
+          else p.dereference(variable.now())
+        }
+      )(owner)
+
+    override def render(variable: Var[A]): Mod[HtmlElement] =
+      onMountInsert { ctx =>
+        caseClass.parameters.map { param =>
+          val paramVar = zoomToParam(variable, param, ctx.owner)
+          div(param.typeclass.labelled(param.label).render(paramVar))
+        }.toList
       }
-    )
+
   }
 
   implicit def gen[A]: Form[A] = macro Magnolia.gen[A]
@@ -50,11 +53,11 @@ sealed trait Form[A] { self =>
   }
 
   def xmap[B](to: A => B)(from: B => A): Form[B] = new Form[B] {
-    override def render(variable: Var[B]): HtmlElement =
+    override def render(variable: Var[B]): Mod[HtmlElement] =
       self.render(variable.zoom[A](from)(to))
   }
 
-  def render(variable: Var[A]): HtmlElement
+  def render(variable: Var[A]): Mod[HtmlElement]
 }
 
 object Form {
