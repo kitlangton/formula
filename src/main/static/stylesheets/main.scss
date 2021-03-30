@@ -44,7 +44,9 @@ form {
 
 
 .input-group {
-    margin-top: 24px;
+    + .input-group {
+        margin-top: 24px;
+    }
 
     input {
         font-size: 22px;

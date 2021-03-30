@@ -1,8 +1,6 @@
 package formula
 
-import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import formula.Formula.Person
 import magnolia._
 
 import scala.language.experimental.macros
@@ -11,58 +9,60 @@ object DeriveForm {
   type Typeclass[A] = Form[A]
 
   def combine[A](caseClass: CaseClass[Form, A]): Form[A] = new Form[A] {
-    private def zoomToParam(variable: Var[A], param: Param[Typeclass, A], owner: Owner): Var[param.PType] =
+    private def zoomToParam(variable: Var[A], param: Param[Typeclass, A])(implicit owner: Owner): Var[param.PType] =
       variable.zoom[param.PType](a => param.dereference(a))(value =>
         caseClass.construct { p =>
           if (p == param) value
           else p.dereference(variable.now())
         }
-      )(owner)
+      )
 
-    override def render(variable: Var[A]): Mod[HtmlElement] =
-      onMountInsert { ctx =>
-        caseClass.parameters.map { param =>
-          val paramVar = zoomToParam(variable, param, ctx.owner)
-          div(param.typeclass.labelled(param.label).render(paramVar))
-        }.toList
-      }
-
+    override def renderImpl(variable: Var[A])(implicit owner: Owner): Mod[HtmlElement] =
+      caseClass.parameters.map { param =>
+        val paramVar = zoomToParam(variable, param)
+        param.typeclass.labelled(param.label).renderImpl(paramVar)
+      }.toList
   }
 
   implicit def gen[A]: Form[A] = macro Magnolia.gen[A]
 }
 
 sealed trait Form[A] { self =>
-  implicit val owner = unsafeWindowOwner
-
   def labelled(str: String): Form[A] = new Form[A] {
-    override def render(variable: Var[A]): HtmlElement =
+    override def renderImpl(variable: Var[A])(implicit owner: Owner): Mod[HtmlElement] =
       div(
         cls("input-group"),
         label(str),
-        self.render(variable)
+        self.renderImpl(variable)
       )
   }
 
   def ~[B](that: Form[B]): Form[(A, B)] = new Form[(A, B)] {
-    override def render(variable: Var[(A, B)]): HtmlElement =
-      div(
-        self.render(variable.zoom(_._1)(_ -> variable.now()._2)),
-        that.render(variable.zoom(_._2)(variable.now()._1 -> _))
+    override def renderImpl(variable: Var[(A, B)])(implicit owner: Owner): Mod[HtmlElement] =
+      Seq(
+        self.renderImpl(variable.zoom(_._1)(_ -> variable.now()._2)),
+        that.renderImpl(variable.zoom(_._2)(variable.now()._1 -> _))
       )
   }
 
   def xmap[B](to: A => B)(from: B => A): Form[B] = new Form[B] {
-    override def render(variable: Var[B]): Mod[HtmlElement] =
-      self.render(variable.zoom[A](from)(to))
+    override def renderImpl(variable: Var[B])(implicit owner: Owner): Mod[HtmlElement] =
+      self.renderImpl(variable.zoom[A](from)(to))
   }
 
-  def render(variable: Var[A]): Mod[HtmlElement]
+  private[formula] def renderImpl(variable: Var[A])(implicit owner: Owner): Mod[HtmlElement]
+
+  def render(variable: Var[A]): FormElement =
+    form(
+      onMountInsert { ctx =>
+        div(renderImpl(variable)(ctx.owner))
+      }
+    )
 }
 
 object Form {
   implicit val string: Form[String] = new Form[String] {
-    override def render(variable: Var[String]): HtmlElement =
+    override def renderImpl(variable: Var[String])(implicit owner: Owner): HtmlElement =
       input(
         controlled(
           value <-- variable,
@@ -73,7 +73,7 @@ object Form {
 
   implicit val int: Form[Int] = string.xmap(_.toInt)(_.toString)
 
-  val example: Form[Person] = DeriveForm.gen[Person]
+  def render[A](variable: Var[A])(implicit form: Form[A]): FormElement = form.render(variable)
 
 //  val exampleManual: Form[Person] =
 //    (string.labelled("Name") ~ string.labelled("Email") ~ int.labelled("Age"))
@@ -88,7 +88,7 @@ object Formula {
   def example: HtmlElement =
     div(
       h4("Formula"),
-      Form.example.render(personVar),
+      Form.render(personVar),
       child.text <-- personVar.signal.map(_.toString),
       button(
         "GET OLDER",
@@ -106,10 +106,14 @@ object Formula {
       dog: Dog
   )
 
+  object Person {
+    implicit val personForm: Form[Person] = DeriveForm.gen[Person]
+  }
+
   case class Dog(nickname: String, loudness: Int)
 
   lazy val personVar = Var(
-    Person("Kit", "kit.langton@gmail.com", "Ground Beef", 30, Dog("Crunchy", 10))
+    Person("Kit", "kit.langton@fakemail.com", "Ground Beef", 30, Dog("Crunchy", 10))
   )
 
   def mainForm: HtmlElement =
