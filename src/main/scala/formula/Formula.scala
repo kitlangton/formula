@@ -73,7 +73,8 @@ object Form {
 
   implicit val int: Form[Int] = string.xmap(_.toInt)(_.toString)
 
-  def render[A](variable: Var[A])(implicit form: Form[A]): FormElement = form.render(variable)
+  def render[A](variable: Var[A])(implicit form: Form[A]): FormElement =
+    form.render(variable)
 
 //  val exampleManual: Form[Person] =
 //    (string.labelled("Name") ~ string.labelled("Email") ~ int.labelled("Age"))

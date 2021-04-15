@@ -1,5 +1,5 @@
 # formula-example
-Example repo for "Deriving your Frontend" tutorial
+Example repo for "Deriving your Frontend" tutorial. [(Live Demo)](https://formula-example.surge.sh)
 
 ## Running Locally
 
