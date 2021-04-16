@@ -4,6 +4,7 @@ import com.raquo.laminar.api.L._
 import magnolia._
 
 import scala.language.experimental.macros
+import java.util.UUID
 
 object DeriveForm {
   type Typeclass[A] = Form[A]
@@ -63,18 +64,40 @@ object Form {
       )    
   }
 
+  implicit val bool: Form[Boolean] = new Form[Boolean] {
+    override def renderImpl(variable: Var[Boolean])(implicit owner: Owner): HtmlElement =
+      input(
+        //controlled(
+          typ("checkbox"),          
+          onInput.mapToChecked --> variable
+        )
+      //)    
+  }
+
+    implicit val uuid: Form[UUID] = new Form[UUID] {
+    override def renderImpl(variable: Var[UUID])(implicit owner: Owner): HtmlElement =
+      input(
+        controlled(
+          value <-- variable.zoom(_.toString())(UUID.fromString(_)),
+          onInput.mapToValue --> variable.zoom(_.toString())(UUID.fromString(_))
+        ),
+        readOnly := true,// I often want to be able to see an ID. It is rare, that I wish to be able to edit one.
+      )      
+  }
+
     implicit val int: Form[Int] = new Form[Int] {
     override def renderImpl(variable: Var[Int])(implicit owner: Owner): HtmlElement =
       input(
         controlled(
           value <-- variable.zoom(_.toString())(_.toInt),
-          // Contraint the input strings to accept numbers only... prevents nasty exceptions.
+          // Constrain the input strings to accept numbers only... prevents nasty exceptions.
           onInput.mapToValue.filter(_.forall(Character.isDigit)) --> variable.zoom[String](_.toString())(_.toInt)
         )
       )    
   }
 
-    implicit val dble: Form[Double] = new Form[Double] {
+  //The double implementation below is kind of nasty. But I think it works. Could be improved with a better error message perhaps.
+  implicit val dble: Form[Double] = new Form[Double] {
     override def renderImpl(variable: Var[Double])(implicit owner: Owner): HtmlElement = {
       def testFct(s:String) : Boolean = s.toDoubleOption match {
               case Some(success) => {true}
@@ -123,7 +146,9 @@ object Formula {
     )
 
   case class Person(
+      uuid: UUID,
       name: String,
+      workyWorky: Boolean,
       age: Int,
       theAwesome: Double,
       bigD: BigDecimal,
@@ -137,6 +162,6 @@ object Formula {
   case class Dog(nickname: String, loudness: Int)
 
   lazy val personVar = Var(
-    Person("Kit", 30, 30.001 , 1.0, Dog("Not crunchy", 10))
+    Person(java.util.UUID.randomUUID, "Kit", false, 30, 30.001 , 1.0, Dog("Not crunchy", 10))
   )
 }
