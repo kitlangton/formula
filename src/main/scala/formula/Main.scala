@@ -13,7 +13,7 @@ object Css extends js.Any
 object Main {
   val css: Css.type = Css
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {    
     val _ = documentEvents.onDomContentLoaded.foreach { _ =>
       val appContainer = dom.document.querySelector("#app")
       appContainer.innerHTML = ""

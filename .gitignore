@@ -1,4 +1,10 @@
 .bsp/
 .idea/
+.metals/
+.bloop/
+.vscode/
+project/project/
+project/metals.sbt
 node_modules/
 target/
+testChar.worksheet.sc

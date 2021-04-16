@@ -37,14 +37,6 @@ sealed trait Form[A] { self =>
       )
   }
 
-  def ~[B](that: Form[B]): Form[(A, B)] = new Form[(A, B)] {
-    override def renderImpl(variable: Var[(A, B)])(implicit owner: Owner): Mod[HtmlElement] =
-      Seq(
-        self.renderImpl(variable.zoom(_._1)(_ -> variable.now()._2)),
-        that.renderImpl(variable.zoom(_._2)(variable.now()._1 -> _))
-      )
-  }
-
   def xmap[B](to: A => B)(from: B => A): Form[B] = new Form[B] {
     override def renderImpl(variable: Var[B])(implicit owner: Owner): Mod[HtmlElement] =
       self.renderImpl(variable.zoom[A](from)(to))
@@ -68,20 +60,52 @@ object Form {
           value <-- variable,
           onInput.mapToValue --> variable
         )
-      )
+      )    
   }
 
-  implicit val int: Form[Int] = string.xmap(_.toInt)(_.toString)
+    implicit val int: Form[Int] = new Form[Int] {
+    override def renderImpl(variable: Var[Int])(implicit owner: Owner): HtmlElement =
+      input(
+        controlled(
+          value <-- variable.zoom(_.toString())(_.toInt),
+          // Contraint the input strings to accept numbers only... prevents nasty exceptions.
+          onInput.mapToValue.filter(_.forall(Character.isDigit)) --> variable.zoom[String](_.toString())(_.toInt)
+        )
+      )    
+  }
+
+    implicit val dble: Form[Double] = new Form[Double] {
+    override def renderImpl(variable: Var[Double])(implicit owner: Owner): HtmlElement = {
+      def testFct(s:String) : Boolean = s.toDoubleOption match {
+              case Some(success) => {true}
+              case None => {false } 
+      }
+      val intermediate = variable.zoom[String](_.toString())(_.toDouble)
+      val fake = Var(intermediate.now())
+      
+      input(
+          value <-- intermediate,
+          onInput.mapToValue.filter({ina => 
+            fake.set(ina);
+            testFct(ina)
+          }) --> intermediate,
+          borderColor <-- fake.zoom[String](in => if(testFct(in)) "" else "red" )(x => "")
+        )    
+    }
+  }
+
+    
+    implicit val bigD: Form[BigDecimal] = new Form[BigDecimal] {
+    override def renderImpl(variable: Var[BigDecimal])(implicit owner: Owner): HtmlElement =
+      input(      
+          value <-- variable.zoom(_.toString())(BigDecimal(_)),
+          
+          onInput.mapToValue -->  variable.zoom[String](_.toString())(BigDecimal(_))        
+      )
+    }    
+  
 
   def render[A](variable: Var[A])(implicit form: Form[A]): FormElement = form.render(variable)
-
-//  val exampleManual: Form[Person] =
-//    (string.labelled("Name") ~ string.labelled("Email") ~ int.labelled("Age"))
-//      .xmap[Person] { case ((name, email), age) =>
-//        Person(name, email, age)
-//      } { case Person(name, email, age) =>
-//        ((name, email), age)
-//      }
 }
 
 object Formula {
@@ -91,18 +115,18 @@ object Formula {
       Form.render(personVar),
       child.text <-- personVar.signal.map(_.toString),
       button(
-        "GET OLDER",
+        "Boost aweseome",
         onClick --> { _ =>
-          personVar.update(person => person.copy(age = person.age + 5))
+          personVar.update(person => person.copy(theAwesome = person.theAwesome + 5))
         }
       )
     )
 
   case class Person(
       name: String,
-      email: String,
-      favoriteFood: String,
       age: Int,
+      theAwesome: Double,
+      bigD: BigDecimal,
       dog: Dog
   )
 
@@ -113,53 +137,6 @@ object Formula {
   case class Dog(nickname: String, loudness: Int)
 
   lazy val personVar = Var(
-    Person("Kit", "kit.langton@fakemail.com", "Ground Beef", 30, Dog("Crunchy", 10))
+    Person("Kit", 30, 30.001 , 1.0, Dog("Not crunchy", 10))
   )
-
-  def mainForm: HtmlElement =
-    form(
-      formInput(
-        "Name",
-        "text",
-        personVar.signal.map(_.name),
-        { string =>
-          personVar.update(_.copy(name = string))
-        }
-      ),
-      formInput(
-        "Email",
-        "text",
-        personVar.signal.map(_.email),
-        { string =>
-          personVar.update(_.copy(email = string))
-        }
-      ),
-      formInput(
-        "Age",
-        "number",
-        personVar.signal.map(_.age.toString),
-        { string =>
-          personVar.update(_.copy(age = string.toInt))
-        }
-      )
-    )
-
-  private def formInput(
-      name: String,
-      tpe: String = "text",
-      signal: Signal[String],
-      update: String => Unit
-  ): HtmlElement =
-    div(
-      cls("input-group"),
-      label(name),
-      input(
-        `type`(tpe),
-        placeholder("Name"),
-        controlled(
-          value <-- signal,
-          onInput.mapToValue --> update
-        )
-      )
-    )
 }
