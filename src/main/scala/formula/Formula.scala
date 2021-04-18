@@ -99,10 +99,8 @@ object Form {
   //The double implementation below is kind of nasty. But I think it works. Could be improved with a better error message perhaps.
   implicit val dble: Form[Double] = new Form[Double] {
     override def renderImpl(variable: Var[Double])(implicit owner: Owner): HtmlElement = {
-      def testFct(s:String) : Boolean = s.toDoubleOption match {
-              case Some(success) => {true}
-              case None => {false } 
-      }
+      def testFct(s:String) : Boolean = s.toDoubleOption.isDefined
+
       val intermediate = variable.zoom[String](_.toString())(_.toDouble)
       val fake = Var(intermediate.now())
       
