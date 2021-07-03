@@ -105,6 +105,14 @@ object ZForm {
   type ZFormVar[-A, +B] = ZVar[Nothing, Nothing, A, Validation[String, B]]
   type FormVar[A]       = ZFormVar[A, A]
 
+  def succeed[A](value: => A): ZForm[A, A] = new ZForm[A, A] {
+    override private[formula] def zVar = FormVar.make(value)
+
+    override def render: Mod[HtmlElement] = new Modifier[HtmlElement] {
+      override def apply(element: HtmlElement): Unit = ()
+    }
+  }
+
   object FormVar {
     def make[A](value: A): FormVar[A] = ZVar.make(value).map(Validation.Succeed(_))
   }

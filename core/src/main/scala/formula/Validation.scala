@@ -38,7 +38,7 @@ sealed trait Validation[+E, +A] { self =>
 }
 
 object Validation {
-  def apply[A](value: A): Validation[Nothing, A] = Succeed(value)
+  def apply[A](value: A): Validation[String, A] = Succeed(value)
 
   case class Warnings[+E, +A](warnings: ::[E], value: A) extends Validation[E, A]
   case class Succeed[+A](value: A)                       extends Validation[Nothing, A]
