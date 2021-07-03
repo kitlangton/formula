@@ -1,26 +1,36 @@
-import { resolve } from 'path'
-import { minifyHtml, injectHtml } from 'vite-plugin-html'
+import {resolve} from 'path'
+import {minifyHtml, injectHtml} from 'vite-plugin-html'
 
 const scalaVersion = '2.13'
-// const scalaVersion = '3.0.0-RC1'
+// const scalaVersion = '3.0.0-RC3'
 
 // https://vitejs.dev/config/
-export default ({ mode }) => {
-  const mainJS = `./target/scala-${scalaVersion}/formula-${mode === 'production' ? 'opt' : 'fastopt'}/main.js`
-  console.log('mainJS', mainJS)
+export default ({mode}) => {
+  const mainJS = `./examples/target/scala-${scalaVersion}/examples-${mode === 'production' ? 'opt' : 'fastopt'}/main.js`
+  const script = `<script type="module" src="${mainJS}"></script>`
+
   return {
-    publicDir: './src/main/static/public',
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8088',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, '')
+        },
+      }
+    },
+    publicDir: './examples/src/main/static/public',
     plugins: [
-      ...(process.env.NODE_ENV === 'production' ? [ minifyHtml(), ] : []),
+      ...(process.env.NODE_ENV === 'production' ? [minifyHtml(),] : []),
       injectHtml({
         injectData: {
-           mainJS
+          script
         }
       })
     ],
     resolve: {
       alias: {
-        'stylesheets': resolve(__dirname, './src/main/static/stylesheets'),
+        'stylesheets': resolve(__dirname, './examples/src/main/static/stylesheets'),
       }
     }
   }

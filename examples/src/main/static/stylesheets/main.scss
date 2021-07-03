@@ -1,7 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,900&display=swap');
 
+$danger: rgb(255, 56, 96);
+$primary: #3273dc;
+
+input {
+  box-shadow: rgba(10, 10, 10, 0.1) 0px 0.9918478727340698px 1.7391304969787598px 0px inset;
+
+  color: #333;
+  outline: none;
+  border: 1px solid rgb(215, 215, 215);
+  border-radius: 4px;
+  padding: 5px 9px;
+  font-size: 16px !important;
+
+  &:hover {
+    border: 1px solid #aaa;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 1.5px rgba($primary, 0.4);
+    border: 1px solid $primary;
+  }
+}
 
 
+.formula-invalid {
+  input {
+    &:focus {
+      box-shadow: 0 0 0 1.5px rgba($danger, 0.4);
+    }
+    border: 1px solid $danger;
+  }
+}
+
+.formula-validation-error {
+  color: $danger;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+
+label {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  opacity: 0.9;
+  display: block;
+  margin-bottom: 8px;
+}
 
 
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
@@ -27,54 +73,32 @@ html {
  */
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 28px;
-    background: black;
-    color: white;
-    box-sizing: border-box;
-    margin: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 18px;
+  background: white;
+  color: #333;
+  box-sizing: border-box;
+  margin: 40px;
 }
 
 form {
-    padding: 20px;
-    border-radius: 4px;
-    background: #111;
-    border: 1px solid #222;
+  padding: 12px;
+  border-radius: 4px;
+  background: rgb(248, 248, 248);
 }
 
 
 .input-group {
-    + .input-group {
-        margin-top: 24px;
-    }
+  + .input-group {
+    margin-top: 24px;
+  }
 
-    input {
-        font-size: 22px;
-        padding: 8px;
-    }
+  input {
+    font-size: 22px;
+    padding: 8px;
+  }
 }
 
-
-label {
-    text-transform: uppercase;
-    font-size: 14px;
-    opacity: 0.8;
-    display: block;
-    margin-bottom: 8px;
-}
-
-input {
-    background: #222;
-    border: 1px solid #333;
-    border-radius: 4px;
-    margin-bottom: 16px;
-    color: white;
-
-}
-
-::placeholder {
-    color: rgba(255,255,255,0.25);
-}
 
 /**
  * Render the `main` element consistently in IE.
