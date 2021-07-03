@@ -111,7 +111,8 @@ object Form {
       override def render: Mod[HtmlElement] =
         div(
           input(
-            placeholder("Name"),
+            // TODO: Use declarative encoding, to make it easier to support placeholder.
+            // placeholder("Name"),
             controlled(
               value <-- variable.signal.map(_.value),
               onInput.mapToValue --> { string => variable.set(string) }

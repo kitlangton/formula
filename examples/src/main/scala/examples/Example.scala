@@ -2,7 +2,9 @@ package examples
 
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import formula.{DeriveForm, FieldLabel, FieldValidation, Validation, Form}
+import examples.Example.{Person, Pet}
+import examples.ManualForm.manualPersonForm
+import formula.{DeriveForm, FieldLabel, FieldValidation, Form, Validation}
 
 object Example {
   case class Pet(
@@ -21,34 +23,38 @@ object Example {
       pet: Pet
   )
 
-  def nameField: Form[String] = Form.string
-    .label("Name")
-    .validate(_.nonEmpty, "Name must not be empty")
-    .validate(_.length < 5, "Name must be short")
-
-  val ageField: Form[Int] = Form.int
-    .label("Age")
-    .validate((_: Int) > 10, "Age must be greater than 10")
-
-  val ratingField: Form[Double] = Form.dollars
-    .label("Money")
-    .validate(_.toInt % 2 == 1, "Money must be odd")
-
-  def zipped: Form[((String, Int), Double)] =
-    nameField zip ageField zip ratingField
-
-  def makePersonForm: Form[Person] =
-    zipped.xmap { case ((name, age), rating) =>
-      Person(name, age, rating, Pet("Crumb"))
-    } { p =>
-      ((p.name, p.age), p.rating)
-    }
-
-  val manualPersonForm: Form[Person] = makePersonForm
-
+  // Derived Form
   val derivedPersonForm: Form[Person] = DeriveForm.gen
 
-  def debugForm[A](name: String, form: Form[A]): Div =
+  def example: Div =
+    div(
+      maxWidth("600px"),
+      margin("0 auto"),
+      div(
+        h1("🧪 Formula"),
+        a(color("green"), fontWeight.bold, textDecoration.none, href("https://github.com/kitlangton/formula"), "GitHub")
+      ),
+      hr(margin("48px 0")),
+      debugForm("Derived Person Form", derivedPersonForm),
+      br(),
+      button(
+        "Set to Default Person",
+        onClick --> { _ =>
+          derivedPersonForm.set(Person("Kit", 123, 55.5, Pet("Crumb")))
+        }
+      ),
+      hr(margin("48px 0")),
+      debugForm("Manual Person Form", manualPersonForm),
+      br(),
+      button(
+        "Set to Default Person",
+        onClick --> { _ =>
+          manualPersonForm.set(Person("Adam", 888, 99.9, Pet("Falcor")))
+        }
+      )
+    )
+
+  private def debugForm[A](name: String, form: Form[A]): Div =
     div(
       h2(name),
       L.form(
@@ -71,23 +77,33 @@ object Example {
       )
     )
 
-  def example: Div =
-    div(
-      debugForm("Derived Person Form", derivedPersonForm),
-      br(),
-      button(
-        "Default Person",
-        onClick --> { _ =>
-          derivedPersonForm.set(Person("Kit", 123, 55.5, Pet("Crumb")))
-        }
-      ),
-      debugForm("Manual Person Form", manualPersonForm),
-      br(),
-      button(
-        "Default Person",
-        onClick --> { _ =>
-          manualPersonForm.set(Person("Adam", 888, 99.9, Pet("Falcor")))
-        }
-      )
-    )
+}
+
+object ManualForm {
+
+  def nameField: Form[String] = Form.string
+    .label("Name")
+    .validate(_.nonEmpty, "Name must not be empty")
+    .validate(_.length < 5, "Name must be short")
+
+  val ageField: Form[Int] = Form.int
+    .label("Age")
+    .validate((_: Int) > 10, "Age must be greater than 10")
+
+  val ratingField: Form[Double] = Form.dollars
+    .label("Money")
+    .validate(_.toInt % 2 == 1, "Money must be odd")
+
+  def zipped: Form[((String, Int), Double)] =
+    nameField zip ageField zip ratingField
+
+  def makePersonForm: Form[Person] =
+    zipped.xmap { case ((name, age), rating) =>
+      Person(name, age, rating, Pet("Falcor"))
+    } { p =>
+      ((p.name, p.age), p.rating)
+    }
+
+  val manualPersonForm: Form[Person] = makePersonForm
+
 }
