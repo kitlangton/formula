@@ -1,4 +1,4 @@
-# formula
+# 🧪 Formula
 
 Derive functional, reactive, Laminar forms at compile-time with this type-safe, composable **form combinator library**.
 
