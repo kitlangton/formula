@@ -1,10 +1,9 @@
 package formula
 
-import com.raquo.laminar.api.L._
 import com.raquo.laminar.api.L
+import com.raquo.laminar.api.L._
 import formula.Form.FormVar
 
-import scala.scalajs.js.timers.setTimeout
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -88,8 +87,7 @@ trait Form[A] { self =>
 }
 
 object Form {
-  private type ZFormVar[-A, +B] = ZVar[Nothing, Nothing, A, Validation[String, B]]
-  type FormVar[A]               = ZFormVar[A, A]
+  type FormVar[A] = ZVar[Nothing, Nothing, A, Validation[String, A]]
 
   def succeed[A](value: => A): Form[A] = new Form[A] {
     override val variable: FormVar[A] = FormVar.make(value)
