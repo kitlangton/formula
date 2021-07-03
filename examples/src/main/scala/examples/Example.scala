@@ -24,7 +24,8 @@ object Example {
   )
 
   // Derived Form
-  val derivedPersonForm: Form[Person] = DeriveForm.gen
+  val derivedPersonForm: Form[Person] =
+    DeriveForm.gen
 
   def example: Div =
     div(
