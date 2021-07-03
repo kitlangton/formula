@@ -13,7 +13,7 @@ name := "formula"
 
 val sharedSettings = Seq(
   licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-  semanticdbEnabled := true,                        // enable SemanticDB
+  semanticdbEnabled := true, // enable SemanticDB
   semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
   developers := List(
     Developer(
@@ -27,7 +27,7 @@ val sharedSettings = Seq(
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, n)) if n <= 12 =>
         List(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
-      case _ =>
+      case _                       =>
         List()
     }
   },
@@ -50,6 +50,7 @@ lazy val core = project
   .in(file("core"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
+    name := "formula",
     scalacOptions ++= Seq("-Ymacro-annotations"),
     libraryDependencies ++= Seq(
       "com.raquo"      %%% "laminar"       % "0.13.0",
