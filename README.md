@@ -1,5 +1,10 @@
-# formula-example
-Example repo for "Deriving your Frontend" tutorial. [(Live Demo)](https://formula-example.surge.sh)
+# formula
+
+Derive functional, reactive, Laminar forms at compile-time with this type-safe, composable **form combinator library**.
+
+## Resources
+
+This project originally started as an example of using Magnolia with Scala.js. While the internals has shifted substantially since the recording, the original video is still available, [Deriving the Frontend](https://youtu.be/JHriftPO62I).
 
 ## Running Locally
 
