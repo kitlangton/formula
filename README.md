@@ -5,6 +5,11 @@
 
 Derive functional, reactive, Laminar forms at compile-time with this type-safe, composable **form combinator library**.
 
+```sbt
+// build.sbt
+libraryDependencies += "io.github.kitlangton" %% "formula" % "x.y.z"
+```
+
 ## Resources
 
 This project originally started as an example of using Magnolia with Scala.js. While the internals has shifted substantially since the recording, the original video is still available, [Deriving the Frontend](https://youtu.be/JHriftPO62I).
