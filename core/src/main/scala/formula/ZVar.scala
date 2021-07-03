@@ -40,6 +40,11 @@ sealed trait ZVar[+EA, +EB, -A, +B] { self =>
         self.signalEither.combineWithFn(that.signalEither)(_ zip _)
     }
 
+  def zipWith[EA1 >: EA, EB1 >: EB, A2, B2, A1 <: A, C](that: ZVar[EA1, EB1, A2, B2])(
+      f: (B, B2) => C
+  ): ZVar[EA1, EB1, (A, A2), C] =
+    zip(that).map { case (b, b2) => f(b, b2) }
+
   def fold[EC, ED, C, D](
       ea: EA => EC,
       eb: EB => ED,

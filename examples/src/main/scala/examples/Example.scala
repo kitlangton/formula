@@ -2,8 +2,7 @@ package examples
 
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import formula.ZForm.Form
-import formula.{DeriveForm, FieldLabel, FieldValidation, Validation, ZForm}
+import formula.{DeriveForm, FieldLabel, FieldValidation, Validation, Form}
 
 object Example {
   case class Pet(
@@ -22,18 +21,18 @@ object Example {
       pet: Pet
   )
 
-  def nameField: Form[String] = ZForm.string
+  def nameField: Form[String] = Form.string
     .label("Name")
     .validate(_.nonEmpty, "Name must not be empty")
     .validate(_.length < 5, "Name must be short")
 
-  val ageField: Form[Int] = ZForm.int
+  val ageField: Form[Int] = Form.int
     .label("Age")
     .validate((_: Int) > 10, "Age must be greater than 10")
 
-  val ratingField: Form[Double] = ZForm.double
-    .label("Rating")
-    .validate(_ > 0, "Rating must be greater than 1")
+  val ratingField: Form[Double] = Form.dollars
+    .label("Money")
+    .validate(_.toInt % 2 == 1, "Money must be odd")
 
   def zipped: Form[((String, Int), Double)] =
     nameField zip ageField zip ratingField

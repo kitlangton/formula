@@ -1,9 +1,6 @@
 package examples
 
-import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import formula.ZForm.Form
-import formula._
 import org.scalajs.dom
 
 import scala.scalajs.js
