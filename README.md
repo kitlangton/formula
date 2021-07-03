@@ -7,7 +7,7 @@ Derive functional, reactive, Laminar forms at compile-time with this type-safe, 
 
 ```sbt
 // build.sbt
-libraryDependencies += "io.github.kitlangton" %% "formula" % "x.y.z"
+libraryDependencies += "io.github.kitlangton" %%% "formula" % "x.y.z"
 ```
 
 ## Resources
