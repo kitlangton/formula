@@ -9,6 +9,8 @@ import scala.util.matching.Regex
 sealed trait Form[A] { self =>
   final def label(label: String): Form[A] = Form.Labeled(self, label)
 
+  final private def many: Form[List[A]] = Form.Many(self)
+
   final def validate(predicate: A => Boolean, error: => String): Form[A] =
     self match {
       case Form.ValidatedForm(form, validations) =>
@@ -18,6 +20,8 @@ sealed trait Form[A] { self =>
     }
 
   final def xmap[B](f: A => B)(g: B => A): Form[B] = Form.XMap(self, f, g)
+
+  final def flatZip[B](f: A => Form[B]): Form[(A, B)] = Form.FlatZip(self, f)
 
   final def zip[B, A1 <: A](that: Form[B]): Form[(A, B)] = Form.Zip(self, that)
 
@@ -73,6 +77,56 @@ object Form {
         )
       )
 
+    case Many(form) =>
+      val FormValue(var0, node0) = render(form)
+      val countForm              = render(Form.int.label("Count"))
+
+      val variables = Var(List.empty[ZVar[Nothing, Nothing, A, Validation[String, A]]])
+
+      // This is so very ugly.
+      val variable = new ZVar[Nothing, Nothing, List[A], Validation[String, List[A]]] {
+        override def get: Either[Nothing, Validation[String, List[A]]] =
+          Right(variables.now().foldLeft(Validation(List.empty[A])) { (acc, v) =>
+            acc.zip(v.get.right.get).map { case (acc, v) => acc.appended(v) }
+          })
+
+        override def set(a: List[A]): Either[Nothing, Unit] = {
+          a.zip(variables.now()).map { case (a, v) =>
+            v.set(a)
+          }
+          Right(())
+        }
+
+        override def signalEither: L.Signal[Either[Nothing, Validation[String, List[A]]]] =
+          variables.signal.flatMap {
+            _.foldLeft[L.Signal[Either[Nothing, Validation[String, List[A]]]]](Val(Right(Validation(List.empty[A])))) {
+              (acc, v) =>
+                acc.combineWithFn(v.signalEither) { case (Right(l), Right(r)) =>
+                  Right(l.zip(r).map { case (as, a) => as.appended(a) })
+                }
+            }
+          }
+
+      }
+
+      countForm.variable.set(0)
+      val node = Seq(
+        countForm.node,
+        div(children <-- countForm.signal.map(v => (0 until v.value).toList).split(identity) { (id, _, _) =>
+          val formValue = render(form)
+          if (variables.now().length > id + 1)
+            variables.update(_.updated(id, formValue.variable.asInstanceOf[FormVar[A]]))
+          else
+            variables.update(_.appended(formValue.variable.asInstanceOf[FormVar[A]]))
+          div(formValue.node)
+        }),
+        // Prune extra variables
+        countForm.signal.map(_.value) --> { count =>
+          if (variables.now().length > count) variables.update(_.take(count))
+        }
+      )
+      FormValue(variable.asInstanceOf[FormVar[A]], node)
+
     case Zip(left, right) =>
       val FormValue(lVar, lNode) = render(left)
       val FormValue(rVar, rNode) = render(right)
@@ -98,6 +152,8 @@ object Form {
   final case class FormValidation[A](predicate: A => Boolean, error: String)
   final case class ValidatedForm[A](form: Form[A], validations: ::[FormValidation[A]]) extends Form[A]
   final case class Zip[A, B](left: Form[A], right: Form[B])                            extends Form[(A, B)]
+  final case class FlatZip[A, B](form: Form[A], f: A => Form[B])                       extends Form[(A, B)]
+  final case class Many[A](form: Form[A])                                              extends Form[List[A]]
   final case class XMap[A, B](form: Form[A], f: A => B, g: B => A)                     extends Form[B]
   final case class Labeled[A](form: Form[A], label: String)                            extends Form[A]
   final case class Succeed[A](value: A)                                                extends Form[A]
@@ -122,6 +178,31 @@ object Form {
     def make[A](value: A): FormVar[A] = ZVar.make(value).map(Validation.Succeed(_))
   }
 
+  def select[A](options: Seq[A], renderOption: A => HtmlElement): Form[A] = Form.Input.make[A] { config =>
+    val var0 = FormVar.make(options.head)
+    val node = L.select(
+      config.modifiers,
+      onInput.mapToValue --> { idxString =>
+        var0.set(options(idxString.toInt))
+      },
+      inContext { el =>
+        var0.signal --> { a =>
+          val idx = options.indexOf(a.value)
+          if (idx >= 0) {
+            el.ref.value = idx.toString
+          }
+        }
+      },
+      options.zipWithIndex.map { case (opt, idx) =>
+        option(
+          value(idx.toString),
+          renderOption(opt)
+        )
+      }
+    )
+    FormValue(var0, node)
+  }
+
   implicit val string: Form[String] = Form.Input.make[String] { config =>
     val var0 = FormVar.make("")
     val node = div(
@@ -136,6 +217,20 @@ object Form {
 
     FormValue(var0, node)
   }
+
+  implicit val boolean: Form[Boolean] =
+    Form.Input.make { config =>
+      val var0 = FormVar.make(false)
+      val node = input(
+        config.modifiers,
+        `type`("checkbox"),
+        controlled(
+          checked <-- var0.signal.map(_.value),
+          onClick.mapToChecked --> { bool => var0.set(bool) }
+        )
+      )
+      FormValue(var0, node)
+    }
 
   implicit val int: Form[Int] = {
     val intRegex = "[0-9]*".r
@@ -156,4 +251,5 @@ object Form {
   }
 
   val dollars: Form[Double] = Form.Input.make(Fields.makeDollars)
+
 }

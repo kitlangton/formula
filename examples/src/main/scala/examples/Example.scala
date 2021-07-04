@@ -1,11 +1,10 @@
 package examples
 
-import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import examples.Example.{Person, Pet}
-import examples.ManualForm.manualPersonForm
+import examples.ManualForm.{ManualPerson, manualPersonForm}
+import examples.Utils.debugForm
 import formula.Form.FormValue
-import formula.{DeriveForm, FieldLabel, FieldValidation, Form, Validation}
+import formula.{DeriveForm, FieldLabel, FieldValidation, Form}
 
 object Example {
   case class Pet(
@@ -13,20 +12,38 @@ object Example {
     petName: String
   )
 
+  sealed trait Job
+
+  object Job {
+    case object Clown           extends Job
+    case object Doctor          extends Job
+    @FieldLabel("High Five Machine")
+    case object HighFiveMachine extends Job
+  }
+
   case class Person(
     @FieldValidation[String](_.nonEmpty, "Must not be empty.")
     name: String,
     @FieldValidation[Int](_ > 10, "Must be older than 10")
     @FieldValidation[Int](_ < 90, "Must be younger than 90")
     age: Int,
+    isAlive: Boolean,
     rating: Double,
     @FieldLabel("")
-    pet: Pet
+    pet: Pet,
+    job: Job
   )
 
   // Derived Form
   val derivedPersonForm: Form.FormValue[Person] =
     Form.render(DeriveForm.gen[Person])
+
+//  val weirdForm: Form[(Boolean, String)] = Form.boolean.flatZip { b =>
+//    if (b) Form.string.label("True")
+//    else Form.string.label("False")
+//  }
+//
+//  val weird = Form.render(Form.int.label("COOL").many)
 
   def example: Div =
     div(
@@ -36,13 +53,12 @@ object Example {
         h1("🧪 Formula"),
         a(color("green"), fontWeight.bold, textDecoration.none, href("https://github.com/kitlangton/formula"), "GitHub")
       ),
-      hr(margin("48px 0")),
+      div(height("48px")),
       debugForm("Derived Person Form", derivedPersonForm),
-      br(),
       button(
         "Set to Default Person",
         onClick --> { _ =>
-          derivedPersonForm.set(Person("Kit", 123, 55.5, Pet("Crumb")))
+          derivedPersonForm.set(Person("Kit", 123, true, 55.5, Pet("Crumb"), Job.Clown))
         }
       ),
       pre(
@@ -77,30 +93,7 @@ def body: HtmlElement = derivedPersonForm.render
       button(
         "Set to Default Person",
         onClick --> { _ =>
-          manualPersonForm.set(Person("Adam", 888, 99.9, Pet("Falcor")))
-        }
-      )
-    )
-
-  private def debugForm[A](name: String, form: FormValue[A]): Div =
-    div(
-      h2(name),
-      L.form(
-        form.node
-      ),
-      pre(
-        background("#ddd"),
-        child <-- form.signal.map {
-          case Validation.Warnings(warnings, value) =>
-            pre(
-              value.toString,
-              pre(
-                color("red"),
-                warnings.mkString("\n")
-              )
-            )
-          case Validation.Succeed(value)            =>
-            value.toString
+          manualPersonForm.set(ManualPerson("J.B. Bobo", 55, true, 99.99))
         }
       )
     )
@@ -108,6 +101,12 @@ def body: HtmlElement = derivedPersonForm.render
 }
 
 object ManualForm {
+  case class ManualPerson(
+    name: String,
+    age: Int,
+    isAlive: Boolean,
+    rating: Double
+  )
 
   val nameField: Form[String] = Form.string
     .label("Name")
@@ -118,21 +117,24 @@ object ManualForm {
     .label("Age")
     .validate((_: Int) > 10, "Age must be greater than 10")
 
-  val ratingField: Form[Double]             =
+  val isAliveField: Form[Boolean] = Form.boolean
+    .label("Is Alive")
+
+  val ratingField: Form[Double]                        =
     Form.dollars
       .label("Money")
       .validate(_.toInt % 2 == 1, "Money must be odd")
 
-  val zipped: Form[((String, Int), Double)] =
-    nameField zip ageField zip ratingField
+  val zipped: Form[(((String, Int), Boolean), Double)] =
+    nameField zip ageField zip isAliveField zip ratingField
 
-  val makePersonForm: Form[Person] =
-    zipped.xmap { case ((name, age), rating) =>
-      Person(name, age, rating, Pet("Falcor"))
+  val makePersonForm: Form[ManualPerson] =
+    zipped.xmap { case (((name, age), isAlive), rating) =>
+      ManualPerson(name, age, isAlive, rating)
     } { p =>
-      ((p.name, p.age), p.rating)
+      (((p.name, p.age), p.isAlive), p.rating)
     }
 
-  val manualPersonForm: FormValue[Person] = Form.render(makePersonForm)
+  val manualPersonForm: FormValue[ManualPerson] = Form.render(makePersonForm)
 
 }

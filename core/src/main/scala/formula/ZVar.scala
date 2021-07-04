@@ -15,7 +15,7 @@ private[formula] object EitherSyntax {
 
 import formula.EitherSyntax._
 
-sealed trait ZVar[+EA, +EB, -A, +B] { self =>
+trait ZVar[+EA, +EB, -A, +B] { self =>
 
   def get: Either[EB, B]
 

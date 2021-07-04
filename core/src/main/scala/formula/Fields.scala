@@ -61,6 +61,7 @@ private[formula] object Fields {
           var0.set(str)
         },
         input(
+          inputConfig.modifiers,
           var0.signal.map(s => renderMoney(s.value.toString)) --> stringVar,
           value <-- stringVar.signal,
           inContext { el =>
