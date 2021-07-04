@@ -1,7 +1,8 @@
 package formula
 
-/** Yoinked from ZIO
-  */
+/**
+ * Yoinked from ZIO
+ */
 trait Zippable[-A, -B] {
   type Out
   def zip(left: A, right: B): Out
@@ -74,7 +75,7 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable9[A, B, C, D, E, F, G, H, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H), Z, (A, B, C, D, E, F, G, H, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H), Z, (A, B, C, D, E, F, G, H, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H), Z] {
       type Out = (A, B, C, D, E, F, G, H, Z)
       def zip(left: (A, B, C, D, E, F, G, H), right: Z): (A, B, C, D, E, F, G, H, Z) =
@@ -82,7 +83,7 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable10[A, B, C, D, E, F, G, H, I, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H, I), Z, (A, B, C, D, E, F, G, H, I, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H, I), Z, (A, B, C, D, E, F, G, H, I, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H, I), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, Z)
       def zip(left: (A, B, C, D, E, F, G, H, I), right: Z): (A, B, C, D, E, F, G, H, I, Z) =
@@ -90,7 +91,7 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable11[A, B, C, D, E, F, G, H, I, J, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H, I, J), Z, (A, B, C, D, E, F, G, H, I, J, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H, I, J), Z, (A, B, C, D, E, F, G, H, I, J, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H, I, J), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, Z)
       def zip(left: (A, B, C, D, E, F, G, H, I, J), right: Z): (A, B, C, D, E, F, G, H, I, J, Z) =
@@ -98,7 +99,7 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable12[A, B, C, D, E, F, G, H, I, J, K, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K), Z, (A, B, C, D, E, F, G, H, I, J, K, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K), Z, (A, B, C, D, E, F, G, H, I, J, K, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, Z)
       def zip(left: (A, B, C, D, E, F, G, H, I, J, K), right: Z): (A, B, C, D, E, F, G, H, I, J, K, Z) =
@@ -106,7 +107,7 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable13[A, B, C, D, E, F, G, H, I, J, K, L, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K, L), Z, (A, B, C, D, E, F, G, H, I, J, K, L, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K, L), Z, (A, B, C, D, E, F, G, H, I, J, K, L, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, Z)
       def zip(left: (A, B, C, D, E, F, G, H, I, J, K, L), right: Z): (A, B, C, D, E, F, G, H, I, J, K, L, Z) =
@@ -128,7 +129,7 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable14[A, B, C, D, E, F, G, H, I, J, K, L, M, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K, L, M), Z, (A, B, C, D, E, F, G, H, I, J, K, L, M, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K, L, M), Z, (A, B, C, D, E, F, G, H, I, J, K, L, M, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, Z)
       def zip(left: (A, B, C, D, E, F, G, H, I, J, K, L, M), right: Z): (A, B, C, D, E, F, G, H, I, J, K, L, M, Z) =
@@ -151,12 +152,12 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     }
 
   implicit def Zippable15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z]
-      : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), Z, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z)] =
+    : Zippable.Out[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), Z, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z)] =
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z) =
         (
           left._1,
@@ -185,8 +186,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, Z) =
         (
           left._1,
@@ -216,8 +217,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Z) =
         (
           left._1,
@@ -248,8 +249,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, Z) =
         (
           left._1,
@@ -281,8 +282,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, Z) =
         (
           left._1,
@@ -315,8 +316,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, Z) =
         (
           left._1,
@@ -350,8 +351,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, Z) =
         (
           left._1,
@@ -386,8 +387,8 @@ trait ZippableLowPriority2 extends ZippableLowPriority3 {
     new Zippable[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U), Z] {
       type Out = (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, Z)
       def zip(
-          left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U),
-          right: Z
+        left: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U),
+        right: Z
       ): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, Z) =
         (
           left._1,

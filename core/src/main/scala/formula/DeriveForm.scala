@@ -13,12 +13,12 @@ object DeriveForm {
 
   def combine[A](caseClass: CaseClass[Form, A]): Form[A] = {
     val forms: List[Form[Any]] = caseClass.parameters.map { param =>
-      val label = param.annotations
-        .collectFirst { case label: FieldLabel => label.label }
+      val label = param.annotations.collectFirst { case label: FieldLabel => label.label }
         .getOrElse(param.label.capitalize)
 
       val form = param.typeclass
         .label(label)
+        .placeholder(label)
         .asInstanceOf[Form[Any]]
 
       val validations = param.annotations.collect { //

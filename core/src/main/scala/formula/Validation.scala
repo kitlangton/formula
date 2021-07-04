@@ -1,6 +1,16 @@
 package formula
 
 sealed trait Validation[+E, +A] { self =>
+
+  def isValid: Boolean = self match {
+    case _: Validation.Warnings[_, _] => false
+    case _: Validation.Succeed[_]     => true
+  }
+
+  def isInvalid: Boolean = !isValid
+
+  def warnings: List[E]
+
   def value: A
 
   def zip[E1 >: E, B](that: Validation[E1, B]): Validation[E1, (A, B)] =
@@ -37,5 +47,7 @@ object Validation {
   def apply[A](value: A): Validation[String, A] = Succeed(value)
 
   case class Warnings[+E, +A](warnings: ::[E], value: A) extends Validation[E, A]
-  case class Succeed[+A](value: A)                       extends Validation[Nothing, A]
+  case class Succeed[+A](value: A)                       extends Validation[Nothing, A] {
+    override def warnings: List[Nothing] = List.empty
+  }
 }

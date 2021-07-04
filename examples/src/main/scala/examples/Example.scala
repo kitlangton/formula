@@ -4,6 +4,7 @@ import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
 import examples.Example.{Person, Pet}
 import examples.ManualForm.manualPersonForm
+import formula.Form.FormValue
 import formula.{DeriveForm, FieldLabel, FieldValidation, Form, Validation}
 
 object Example {
@@ -24,8 +25,8 @@ object Example {
   )
 
   // Derived Form
-  val derivedPersonForm: Form[Person] =
-    DeriveForm.gen
+  val derivedPersonForm: Form.FormValue[Person] =
+    Form.render(DeriveForm.gen[Person])
 
   def example: Div =
     div(
@@ -81,11 +82,11 @@ def body: HtmlElement = derivedPersonForm.render
       )
     )
 
-  private def debugForm[A](name: String, form: Form[A]): Div =
+  private def debugForm[A](name: String, form: FormValue[A]): Div =
     div(
       h2(name),
       L.form(
-        form.render
+        form.node
       ),
       pre(
         background("#ddd"),
@@ -108,30 +109,30 @@ def body: HtmlElement = derivedPersonForm.render
 
 object ManualForm {
 
-  def nameField: Form[String] = Form.string
+  val nameField: Form[String] = Form.string
     .label("Name")
     .validate(_.nonEmpty, "Name must not be empty")
     .validate(_.length < 5, "Name must be short")
 
-  def ageField: Form[Int] = Form.int
+  val ageField: Form[Int] = Form.int
     .label("Age")
     .validate((_: Int) > 10, "Age must be greater than 10")
 
-  def ratingField: Form[Double]             =
+  val ratingField: Form[Double]             =
     Form.dollars
       .label("Money")
       .validate(_.toInt % 2 == 1, "Money must be odd")
 
-  def zipped: Form[((String, Int), Double)] =
+  val zipped: Form[((String, Int), Double)] =
     nameField zip ageField zip ratingField
 
-  def makePersonForm: Form[Person] =
+  val makePersonForm: Form[Person] =
     zipped.xmap { case ((name, age), rating) =>
       Person(name, age, rating, Pet("Falcor"))
     } { p =>
       ((p.name, p.age), p.rating)
     }
 
-  val manualPersonForm: Form[Person] = makePersonForm
+  val manualPersonForm: FormValue[Person] = Form.render(makePersonForm)
 
 }
