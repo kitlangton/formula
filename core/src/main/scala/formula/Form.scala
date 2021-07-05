@@ -7,9 +7,14 @@ import formula.Form.FormValidation
 import scala.util.matching.Regex
 
 sealed trait Form[A] { self =>
+  def widen[A1 >: A]: Form[A1] = self.asInstanceOf[Form[A1]]
+
   final def label(label: String): Form[A] = Form.Labeled(self, label)
 
   final private def many: Form[List[A]] = Form.Many(self)
+
+  final def default(value: Option[A]): Form[A] =
+    value.map(Form.Default(self, _)).getOrElse(self)
 
   final def validate(predicate: A => Boolean, error: => String): Form[A] =
     self match {
@@ -19,9 +24,8 @@ sealed trait Form[A] { self =>
         Form.ValidatedForm(self, ::(FormValidation(predicate, error), Nil))
     }
 
-  final def xmap[B](f: A => B)(g: B => A): Form[B] = Form.XMap(self, f, g)
-
-  final def flatZip[B](f: A => Form[B]): Form[(A, B)] = Form.FlatZip(self, f)
+  final def xmap[B](f: A => B)(g: B => A): Form[B]           = Form.XMap(self, f, g)
+  final def xflatMap[B](f: A => Form[B])(g: B => A): Form[B] = Form.XFlatMap(self, f, g)
 
   final def zip[B, A1 <: A](that: Form[B]): Form[(A, B)] = Form.Zip(self, that)
 
@@ -47,6 +51,8 @@ object Form {
       variable.signal
 
     def set(value: A): Unit = variable.set(value)
+
+    lazy val $value = signal.map(_.value)
   }
 
   def render[A](form: Form[A]): FormValue[A] = form match {
@@ -76,6 +82,11 @@ object Form {
           }
         )
       )
+
+    case Default(form, defaultValue) =>
+      val formValue = render(form)
+      formValue.set(defaultValue)
+      formValue
 
     case Many(form) =>
       val FormValue(var0, node0) = render(form)
@@ -137,6 +148,47 @@ object Form {
       val FormValue(var0, node0) = render(form)
       FormValue(var0.dimap(g, _.map(f)), node0)
 
+    case XFlatMap(form, f, g) =>
+      val FormValue(varA, node0) = render(form)
+
+      val value     = varA.get.toOption.get.value
+      val firstForm = Form.render(f(value))
+      val forms     = collection.mutable.Map(value -> firstForm)
+      val formVar   = Var(firstForm)
+
+      def updateSubform(value: Any): Unit = {
+        val form = forms.getOrElse(
+          value, {
+            val form = Form.render(f(value))
+            forms.addOne((value, form))
+            form
+          }
+        )
+        formVar.set(form)
+      }
+
+      val varB = new ZVar[Nothing, Nothing, A, Validation[String, A]] {
+        override def set(b: A): Either[Nothing, Unit] = {
+          varA.set(g(b))
+          formVar.now().variable.set(b)
+        }
+
+        override def get: Either[Nothing, Validation[String, A]] =
+          formVar.now().variable.get
+
+        override def signalEither: L.Signal[Either[Nothing, Validation[String, A]]] =
+          formVar.signal.flatMap(_.variable.signalEither)
+      }
+
+      val node =
+        Seq(
+          node0,
+          varA.signal --> { va => updateSubform(va.value) },
+          child <-- formVar.signal.map(form => div(form.node))
+        )
+
+      FormValue(varB, node)
+
     case Labeled(form, label) =>
       val FormValue(var0, node0) = render(form)
       FormValue(var0, Seq(L.label(label), node0))
@@ -151,10 +203,11 @@ object Form {
 
   final case class FormValidation[A](predicate: A => Boolean, error: String)
   final case class ValidatedForm[A](form: Form[A], validations: ::[FormValidation[A]]) extends Form[A]
+  final case class Default[A](form: Form[A], defaultValue: A)                          extends Form[A]
   final case class Zip[A, B](left: Form[A], right: Form[B])                            extends Form[(A, B)]
-  final case class FlatZip[A, B](form: Form[A], f: A => Form[B])                       extends Form[(A, B)]
   final case class Many[A](form: Form[A])                                              extends Form[List[A]]
   final case class XMap[A, B](form: Form[A], f: A => B, g: B => A)                     extends Form[B]
+  final case class XFlatMap[A, B](form: Form[A], f: A => Form[B], g: B => A)           extends Form[B]
   final case class Labeled[A](form: Form[A], label: String)                            extends Form[A]
   final case class Succeed[A](value: A)                                                extends Form[A]
   final case class Input[A](placeholder: String, className: String, formValue: InputConfig => FormValue[A])
@@ -178,7 +231,7 @@ object Form {
     def make[A](value: A): FormVar[A] = ZVar.make(value).map(Validation.Succeed(_))
   }
 
-  def select[A](options: Seq[A], renderOption: A => HtmlElement): Form[A] = Form.Input.make[A] { config =>
+  def select[A](options: Seq[A])(renderOption: A => String): Form[A] = Form.Input.make[A] { config =>
     val var0 = FormVar.make(options.head)
     val node = L.select(
       config.modifiers,
