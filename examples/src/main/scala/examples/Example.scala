@@ -4,7 +4,7 @@ import com.raquo.laminar.api.L._
 import examples.ManualForm.{ManualPerson, manualPersonForm}
 import examples.Utils.debugForm
 import formula.DeriveForm.gen
-import formula.Form.FormValue
+import formula.Form.{FormValidation, FormValue}
 import formula.{DeriveForm, FieldLabel, FieldValidation, Form}
 
 object Example {

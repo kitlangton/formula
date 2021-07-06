@@ -153,14 +153,15 @@ object Form {
 
       val value     = varA.get.toOption.get.value
       val firstForm = Form.render(f(value))
-      val forms     = collection.mutable.Map(value -> firstForm)
-      val formVar   = Var(firstForm)
+
+      val memoizedForms = collection.mutable.Map(value -> firstForm)
+      val formVar       = Var(firstForm)
 
       def updateSubform(value: Any): Unit = {
-        val form = forms.getOrElse(
+        val form = memoizedForms.getOrElse(
           value, {
             val form = Form.render(f(value))
-            forms.addOne((value, form))
+            memoizedForms.addOne((value, form))
             form
           }
         )
@@ -176,7 +177,7 @@ object Form {
         override def get: Either[Nothing, Validation[String, A]] =
           formVar.now().variable.get
 
-        override def signalEither: L.Signal[Either[Nothing, Validation[String, A]]] =
+        override def signalEither: Signal[Either[Nothing, Validation[String, A]]] =
           formVar.signal.flatMap(_.variable.signalEither)
       }
 
@@ -218,10 +219,11 @@ object Form {
       Input("", "", f)
   }
 
-  case class InputConfig(placeholder: String, className: String) {
+  case class InputConfig(placeholder: String, className: String, inputType: String = "text") {
     def modifiers: Mod[HtmlElement] = Seq(
       L.placeholder(placeholder),
-      L.className(className)
+      L.className(className),
+      L.`type`(inputType)
     )
   }
 
@@ -289,7 +291,7 @@ object Form {
     val intRegex = "[0-9]*".r
     Form.Input.make { config =>
       val var0 = FormVar.make(0)
-      val node = Fields.regex(config, var0, _.toIntOption, intRegex)
+      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toIntOption, intRegex)
       FormValue(var0, node)
     }
   }
@@ -298,7 +300,7 @@ object Form {
     val doubleRegex: Regex = "-?\\d*\\.?\\d*e?".r
     Form.Input.make { config =>
       val var0 = FormVar.make(0.0)
-      val node = Fields.regex(config, var0, _.toDoubleOption, doubleRegex)
+      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toDoubleOption, doubleRegex)
       FormValue(var0, node)
     }
   }
