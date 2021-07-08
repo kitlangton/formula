@@ -1,7 +1,7 @@
 package formula
 
 import com.raquo.laminar.api.L._
-import formula.Form.{FormValue, FormVar, InputConfig}
+import formula.Form.{FormVar, InputConfig}
 
 import scala.util.Try
 import scala.util.matching.Regex
@@ -9,13 +9,22 @@ import scala.util.matching.Regex
 private[formula] object Fields {
 
   // Regex Constrained Field
-  def regex[A](config: InputConfig, variable: FormVar[A], parser: String => Option[A], regex: Regex): HtmlElement = {
+  def regex[A](config: InputConfig[A], variable: FormVar[A], parser: String => Option[A], regex: Regex): HtmlElement = {
     val stringVar = Var("")
+
+    val touched = Var(false)
 
     input(
       config.modifiers,
       stringVar.signal.changes.map(parser).collect { case Some(d) => d } --> { value => variable.set(value) },
       variable.signal.changes.map(_.value.toString) --> stringVar,
+      onKeyPress --> { event =>
+        if (event.key.length == 1 && !regex.matches(event.key) && !event.metaKey) event.preventDefault()
+        touched.set(true)
+      },
+      cls.toggle("is-invalid") <-- variable.signal.combineWithFn(touched.signal) {
+        _.warnings.nonEmpty && _
+      },
       inContext { el =>
         controlled(
           value <-- stringVar,
@@ -36,7 +45,7 @@ private[formula] object Fields {
 
   // Money Field
   private val moneyRegex: Regex = "\\$? ?\\d{1,3}[,\\d{1,3}]*\\.?\\d{0,2}".r
-  def makeDollars(inputConfig: InputConfig): FormValue[Double] = {
+  def makeDollars(inputConfig: InputConfig[Double]): FormValue[Double] = {
     val var0: FormVar[Double] =
       FormVar.make(0.0)
 
