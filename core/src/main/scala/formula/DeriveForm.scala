@@ -2,7 +2,7 @@ package formula
 
 import com.raquo.laminar.api.L._
 import formula.Annotations.{help, label, validation}
-import magnolia.{CaseClass, Magnolia, SealedTrait, Subtype}
+import magnolia1.{CaseClass, Magnolia, SealedTrait, Subtype}
 
 import scala.annotation.StaticAnnotation
 import scala.language.experimental.macros
@@ -18,7 +18,7 @@ object Annotations {
 object DeriveForm {
   type Typeclass[A] = Form[A]
 
-  def dispatch[T](sealedTrait: SealedTrait[Typeclass, T]): Typeclass[T] = {
+  def split[T](sealedTrait: SealedTrait[Typeclass, T]): Typeclass[T] = {
     val options: Map[String, Subtype[Typeclass, T]] =
       sealedTrait.subtypes.map { sub =>
         getSubtypeLabel(sub) -> sub
@@ -29,11 +29,11 @@ object DeriveForm {
       .xflatMap { label =>
         options(label).typeclass.widen[T]
       } { subtype =>
-        sealedTrait.dispatch(subtype)(getSubtypeLabel)
+        sealedTrait.split(subtype)(getSubtypeLabel)
       }
   }
 
-  def combine[A](caseClass: CaseClass[Form, A]): Form[A] = {
+  def join[A](caseClass: CaseClass[Form, A]): Form[A] = {
     val forms: List[Form[Any]] = caseClass.parameters.map { param =>
       val label: String =
         param.annotations.collectFirst { case label: label => label.label }

@@ -3,6 +3,8 @@ package formula
 import com.raquo.laminar.api.L._
 import formula.Form.{FormVar, InputConfig}
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -40,6 +42,22 @@ private[formula] object Fields {
           }
         )
       }
+    )
+  }
+
+  def date(config: InputConfig[LocalDate], variable: FormVar[LocalDate]): HtmlElement = {
+    val formatter = DateTimeFormatter.ISO_DATE
+
+    input(
+      config.modifiers,
+      `type`("date"),
+      controlled(
+        value <-- variable.signal.map(_.value.format(formatter)),
+        onInput.mapToValue --> { text =>
+          val result = LocalDate.parse(text, formatter)
+          variable.set(result)
+        }
+      )
     )
   }
 

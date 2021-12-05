@@ -1,4 +1,4 @@
-lazy val Scala213               = "2.13.6"
+lazy val Scala213               = "2.13.7"
 lazy val Scala212               = "2.12.14"
 lazy val Scala211               = "2.11.12"
 lazy val Scala3                 = "3.0.0"
@@ -11,10 +11,12 @@ ThisBuild / description := "A form combinator library for decimating frontend bo
 ThisBuild / homepage := Some(url("https://github.com/kitlangton/formula"))
 name := "formula"
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 val sharedSettings = Seq(
   licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-  semanticdbEnabled := true, // enable SemanticDB
-  semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
+//  semanticdbEnabled := true, // enable SemanticDB
+//  semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
   developers := List(
     Developer(
       id = "kitlangton",
@@ -53,9 +55,9 @@ lazy val core = project
     name := "formula",
     scalacOptions ++= Seq("-Ymacro-annotations"),
     libraryDependencies ++= Seq(
-      "com.raquo"      %%% "laminar"       % "0.13.0",
-      "com.propensive" %%% "magnolia"      % "0.17.0",
-      "org.scala-lang"   % "scala-reflect" % scalaVersion.value % Provided
+      "com.raquo"                    %%% "laminar"       % "0.14.2",
+      "com.softwaremill.magnolia1_2" %%% "magnolia"      % "1.0.0-M7",
+      "org.scala-lang"                 % "scala-reflect" % scalaVersion.value % Provided
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
     scalaJSLinkerConfig ~= { _.withSourceMap(false) }
@@ -66,7 +68,11 @@ lazy val examples = project
   .in(file("examples"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
-    libraryDependencies ++= Seq("com.raquo" %%% "laminar" % "0.13.0"),
+    libraryDependencies ++= Seq(
+      "com.raquo"         %%% "laminar"              % "0.14.2",
+      "io.github.cquiroz" %%% "scala-java-time"      % "2.2.2",
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.3.0"
+    ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
     scalaJSLinkerConfig ~= { _.withSourceMap(false) },
     scalaJSUseMainModuleInitializer := true,

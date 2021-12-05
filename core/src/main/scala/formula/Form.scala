@@ -4,6 +4,7 @@ import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
 import formula.Form.{FormValidation, FormVar}
 
+import java.time.LocalDate
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -498,6 +499,13 @@ object Form {
       FormValue(var0, node)
     }
   }
+
+  implicit val localDate: Form[LocalDate] =
+    Form.Input.make { config =>
+      val var0 = FormVar.make(LocalDate.now)
+      val node = Fields.date(config.copy(inputType = "date"), var0)
+      FormValue(var0, node)
+    }
 
   val dollars: Form[Double] = Form.Input.make(Fields.makeDollars)
 
