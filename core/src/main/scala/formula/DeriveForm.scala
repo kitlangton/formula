@@ -2,9 +2,9 @@ package formula
 
 import com.raquo.laminar.api.L._
 import formula.Annotations.{help, label, validation}
-import magnolia1.{CaseClass, Magnolia, SealedTrait, Subtype}
 
 import scala.annotation.StaticAnnotation
+import magnolia1.{CaseClass, Magnolia, SealedTrait, Subtype}
 import scala.language.experimental.macros
 
 object Annotations {
@@ -79,6 +79,7 @@ object DeriveForm {
   }
 
   implicit def gen[A]: Form[A] = macro Magnolia.gen[A]
+
   def build[A](implicit form: Form[A]): FormValue[A] = Form.build(form)
 
   private def getSubtypeLabel[T](sub: Subtype[Typeclass, T]): String =

@@ -2,10 +2,11 @@ package examples
 
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import formula.{FormValue, Validation}
+import formula.{DeriveForm, Form, FormValue, Validation}
 
 object Utils {
-  def debugForm[A](name: String, form: FormValue[A]): Div =
+  def makeForm[A: Form](name: String): Div = {
+    val form = DeriveForm.build[A]
     div(
       div(
         cls("card"),
@@ -38,4 +39,5 @@ object Utils {
         )
       )
     )
+  }
 }

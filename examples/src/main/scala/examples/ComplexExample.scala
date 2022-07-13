@@ -1,7 +1,7 @@
 package examples
 
 import com.raquo.laminar.api.L._
-import examples.Utils.debugForm
+import examples.Utils.makeForm
 import formula.Annotations._
 import formula.DeriveForm.gen
 import formula.{DeriveForm, FormValue}
@@ -49,7 +49,7 @@ object ComplexExample {
         h1("🧪 Compile-Time Form Derivation")
       ),
       div(height("48px")),
-      debugForm("Derived Person Form", derivedPersonForm),
+      makeForm[Person]("Derived Person Form"),
       button(
         cls("btn btn-primary btn-sm"),
         marginTop("20px"),
