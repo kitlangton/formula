@@ -1,8 +1,7 @@
-lazy val Scala213               = "2.13.7"
-lazy val Scala212               = "2.12.14"
-lazy val Scala211               = "2.11.12"
+lazy val Scala213               = "2.13.8"
+lazy val Scala212               = "2.12.15"
 lazy val Scala3                 = "3.0.0"
-lazy val supportedScalaVersions = List(Scala213, Scala212, Scala211)
+lazy val supportedScalaVersions = List(Scala213)
 
 ThisBuild / scalaVersion := Scala213
 ThisBuild / organization := "io.github.kitlangton"
@@ -56,7 +55,7 @@ lazy val core = project
     scalacOptions ++= Seq("-Ymacro-annotations"),
     libraryDependencies ++= Seq(
       "com.raquo"                    %%% "laminar"       % "0.14.2",
-      "com.softwaremill.magnolia1_2" %%% "magnolia"      % "1.0.0-M7",
+      "com.softwaremill.magnolia1_2" %%% "magnolia"      % "1.1.2",
       "org.scala-lang"                 % "scala-reflect" % scalaVersion.value % Provided
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
@@ -68,10 +67,11 @@ lazy val examples = project
   .in(file("examples"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
+    name := "formula-examples",
     libraryDependencies ++= Seq(
       "com.raquo"         %%% "laminar"              % "0.14.2",
-      "io.github.cquiroz" %%% "scala-java-time"      % "2.2.2",
-      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.3.0"
+      "io.github.cquiroz" %%% "scala-java-time"      % "2.4.0",
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.4.0"
     ),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
     scalaJSLinkerConfig ~= { _.withSourceMap(false) },
