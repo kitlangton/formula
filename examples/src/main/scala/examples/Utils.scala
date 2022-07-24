@@ -12,13 +12,13 @@ object Utils {
         cls("card"),
         div(
           cls("card-header"),
-          name
+          name,
         ),
         div(
           cls("card-body"),
           L.form(
-            form.node
-          )
+            form.view,
+          ),
         ),
         div(
           cls("card-footer"),
@@ -29,15 +29,15 @@ object Utils {
                   value.toString,
                   pre(
                     color("red"),
-                    warnings.mkString("\n")
-                  )
+                    warnings.mkString("\n"),
+                  ),
                 )
-              case Validation.Succeed(value)            =>
+              case Validation.Succeed(value) =>
                 value.toString
-            }
-          )
-        )
-      )
+            },
+          ),
+        ),
+      ),
     )
   }
 }

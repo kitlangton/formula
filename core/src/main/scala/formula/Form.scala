@@ -14,29 +14,29 @@ sealed trait Form[A] { self =>
   def widen[A1 >: A]: Form[A1] = self.asInstanceOf[Form[A1]]
 
   final def help(helpText: String): Form[A] = self match {
-    case Form.ValidatedForm(form, validations)                                 =>
+    case Form.ValidatedForm(form, validations) =>
       Form.ValidatedForm(form.help(helpText), validations)
-    case Form.Default(form, defaultValue)                                      =>
+    case Form.Default(form, defaultValue) =>
       Form.Default(form.help(helpText), defaultValue)
-    case Form.XMap(form, f, g)                                                 =>
+    case Form.XMap(form, f, g) =>
       Form.XMap(form.help(helpText), f, g)
     case Form.Input(label, placeholder, className, "", validations, formValue) =>
       Form.Input(label, placeholder, className, helpText, validations, formValue)
-    case other                                                                 => other
+    case other => other
   }
 
   final def label(label: String): Form[A] = self match {
-    case Form.ValidatedForm(form, validations)                                   =>
+    case Form.ValidatedForm(form, validations) =>
       Form.ValidatedForm(form.label(label), validations)
-    case Form.Default(form, defaultValue)                                        =>
+    case Form.Default(form, defaultValue) =>
       Form.Default(form.label(label), defaultValue)
-    case Form.XMap(form, f, g)                                                   =>
+    case Form.XMap(form, f, g) =>
       Form.XMap(form.label(label), f, g)
-    case Form.XFlatMap(form, f, g)                                               =>
+    case Form.XFlatMap(form, f, g) =>
       Form.XFlatMap(form.label(label), f, g)
     case Form.Input(_, placeholder, className, helpText, validations, formValue) =>
       Form.Input(label, placeholder, className, helpText, validations, formValue)
-    case other                                                                   => other
+    case other => other
   }
 //    Form.Labeled(self, label)
 
@@ -47,17 +47,17 @@ sealed trait Form[A] { self =>
 
   final def validate(predicate: A => Boolean, error: => String): Form[A] =
     self match {
-      case Form.ValidatedForm(form, validations)                                       =>
+      case Form.ValidatedForm(form, validations) =>
         Form.ValidatedForm(form.validate(predicate, error), validations)
-      case Form.XMap(form, f, g)                                                       =>
+      case Form.XMap(form, f, g) =>
         Form.XMap(form.validate(predicate.asInstanceOf[Any => Boolean], error), f, g)
-      case Form.Labeled(form, label)                                                   =>
+      case Form.Labeled(form, label) =>
         Form.Labeled(form.validate(predicate, error), label)
-      case Form.Default(form, defaultValue)                                            =>
+      case Form.Default(form, defaultValue) =>
         Form.Default(form.validate(predicate, error), defaultValue)
       case Form.Input(label, placeholder, className, helpText, validations, formValue) =>
         Form.Input(label, placeholder, className, helpText, FormValidation(predicate, error) :: validations, formValue)
-      case other                                                                       =>
+      case other =>
         other
     }
 //    self match {
@@ -75,17 +75,17 @@ sealed trait Form[A] { self =>
 
   final def placeholder(placeholder: String): Form[A] =
     self match {
-      case Form.ValidatedForm(form, validations)                              =>
+      case Form.ValidatedForm(form, validations) =>
         Form.ValidatedForm(form.placeholder(placeholder), validations)
-      case Form.XMap(form, f, g)                                              =>
+      case Form.XMap(form, f, g) =>
         Form.XMap(form.placeholder(placeholder), f, g)
-      case Form.Labeled(form, label)                                          =>
+      case Form.Labeled(form, label) =>
         Form.Labeled(form.placeholder(placeholder), label)
-      case Form.Default(form, defaultValue)                                   =>
+      case Form.Default(form, defaultValue) =>
         Form.Default(form.placeholder(placeholder), defaultValue)
       case Form.Input(label, "", className, helpText, validations, formValue) =>
         Form.Input(label, placeholder, className, helpText, validations, formValue)
-      case other                                                              => other
+      case other => other
     }
 }
 
@@ -118,8 +118,8 @@ object Form {
           node0,
           children <-- $warnings.map {
             _.map(str => div(cls("invalid-feedback"), str))
-          }
-        )
+          },
+        ),
       )
 
     case Default(form, defaultValue) =>
@@ -158,19 +158,19 @@ object Form {
 
       countForm.variable.set(0)
       val node = Seq(
-        countForm.node,
+        countForm.view,
         div(children <-- countForm.signal.map(v => (0 until v.value).toList).split(identity) { (id, _, _) =>
           val formValue = build(form)
           if (variables.now().length > id + 1)
             variables.update(_.updated(id, formValue.variable.asInstanceOf[FormVar[A]]))
           else
             variables.update(_.appended(formValue.variable.asInstanceOf[FormVar[A]]))
-          div(formValue.node)
+          div(formValue.view)
         }),
         // Prune extra variables
         countForm.signal.map(_.value) --> { count =>
           if (variables.now().length > count) variables.update(_.take(count))
-        }
+        },
       )
       FormValue(variable.asInstanceOf[FormVar[A]], node)
 
@@ -190,14 +190,14 @@ object Form {
       val bFormVar       = Var(firstFormValue)
 
       def updateSubform(value: Any): Unit = {
-        val form      = f(value)
+        val form = f(value)
         val formValue = memoizedForms.getOrElse(
           form, {
             println(s"CREATING NEW FORM VALUE FOR $form")
             val formValue = Form.build(form)
             memoizedForms.addOne((form, formValue))
             formValue
-          }
+          },
         )
         bFormVar.set(formValue)
       }
@@ -221,7 +221,7 @@ object Form {
         Seq(
           node0,
           varA.signal --> { va => updateSubform(va.value) },
-          child <-- bFormVar.signal.map(form => div(form.node))
+          child <-- bFormVar.signal.map(form => div(form.view)),
         )
 
       FormValue(varB, node)
@@ -244,7 +244,7 @@ object Form {
             val form = Form.build(f(value))
             memoizedForms.addOne((value, form))
             form
-          }
+          },
         )
         formVar.set(form)
       }
@@ -266,7 +266,7 @@ object Form {
         Seq(
           node0,
           varA.signal --> { va => updateSubform(va.value) },
-          child <-- formVar.signal.map(form => div(form.node))
+          child <-- formVar.signal.map(form => div(form.view)),
         )
 
       FormValue(varB, node)
@@ -284,15 +284,15 @@ object Form {
         placeholder = placeholder,
         helpText = helpText,
         validations = validations,
-        className = className
+        className = className,
       )
 
       val FormValue(var0, node0) = makeFormValue(config)
 
       val node =
         div(
-          cls("mb-3"),
-          L.label(cls("form-label"), label),
+          cls("mb-3 flex flex-col"),
+          div(L.label(cls("form-label text-sm text-stone-400"), label)),
           node0,
           children <-- var0.signal.map {
             _.warnings.map(str => div(cls("invalid-feedback"), str))
@@ -300,9 +300,9 @@ object Form {
           Option.when(helpText.nonEmpty)(
             div(
               cls("form-text"),
-              helpText
-            )
-          )
+              helpText,
+            ),
+          ),
         )
 
       FormValue(var0, node)
@@ -325,8 +325,8 @@ object Form {
     className: String,
     helpText: String,
     validations: List[FormValidation[A]],
-    formValue: InputConfig[A] => FormValue[A]
-  )                                                                                    extends Form[A]
+    formValue: InputConfig[A] => FormValue[A],
+  ) extends Form[A]
 
   object Input {
     def make[A](f: InputConfig[A] => FormValue[A]): Form[A] =
@@ -339,7 +339,7 @@ object Form {
     className: String,
     helpText: String,
     validations: List[FormValidation[A]],
-    inputType: String = "text"
+    inputType: String = "text",
   ) {
     def wrap(el: Mod[HtmlElement]): Mod[HtmlElement] =
       div(
@@ -349,9 +349,9 @@ object Form {
         Option.when(helpText.nonEmpty)(
           div(
             cls("form-text"),
-            helpText
-          )
-        )
+            helpText,
+          ),
+        ),
       )
 
     def validate(variable: FormVar[A]): FormVar[A] =
@@ -364,7 +364,7 @@ object Form {
     def modifiers: Mod[HtmlElement] = Seq(
       L.placeholder(placeholder),
       L.className(className),
-      L.`type`(inputType)
+      L.`type`(inputType),
     )
   }
 
@@ -392,9 +392,9 @@ object Form {
       options.zipWithIndex.map { case (opt, idx) =>
         option(
           value(idx.toString),
-          renderOption(opt)
+          renderOption(opt),
         )
-      }
+      },
     )
     FormValue(var0, node)
   }
@@ -403,7 +403,7 @@ object Form {
     config =>
       val signal = source.toObservable.toSignalIfStream(_.toSignal(List.empty))
       val var0   = FormVar.make(Option.empty[A])
-      val node   = L.select(
+      val node = L.select(
         config.modifiers,
         composeEvents(onInput.mapToValue)(_.withCurrentValueOf(signal)) --> Observer[(String, List[A])] {
           case (idxString, options) =>
@@ -411,29 +411,27 @@ object Form {
         },
         inContext { el =>
           var0.signal.map(_.value).withCurrentValueOf(signal) --> Observer[(Option[A], List[A])] {
-            {
-              case (Some(a), options) =>
-                val idx = options.indexOf(a)
-                if (idx >= 0) {
-                  el.ref.value = idx.toString
-                } else {
-                  el.ref.value = ""
-                }
-
-              case (None, _) =>
+            case (Some(a), options) =>
+              val idx = options.indexOf(a)
+              if (idx >= 0) {
+                el.ref.value = idx.toString
+              } else {
                 el.ref.value = ""
-            }
+              }
+
+            case (None, _) =>
+              el.ref.value = ""
           }
         },
         option(
-          value("")
+          value(""),
         ),
         children <-- signal.map(_.zipWithIndex).split(identity) { case ((opt, idx), _, _) =>
           option(
             value(idx.toString),
-            renderOption(opt)
+            renderOption(opt),
           )
-        }
+        },
       )
       FormValue(var0, node)
   }
@@ -451,8 +449,8 @@ object Form {
         onInput.mapTo(true) --> touched,
         controlled(
           value <-- var0.signal.map(_.value),
-          onInput.mapToValue --> { string => var0.set(string) }
-        )
+          onInput.mapToValue --> { string => var0.set(string) },
+        ),
       )
 
     FormValue(var0, node)
@@ -462,7 +460,7 @@ object Form {
     Form.Input.make { config =>
       val var0    = config.validate(FormVar.make(false))
       val touched = Var(false)
-      val node    =
+      val node =
         input(
           display("block"),
           cls("form-check-input"),
@@ -476,8 +474,8 @@ object Form {
             onClick.mapToChecked --> { bool =>
               touched.set(true)
               var0.set(bool)
-            }
-          )
+            },
+          ),
         )
       FormValue(var0, node)
     }
@@ -518,7 +516,7 @@ object Form {
 
 }
 
-case class FormValue[A](variable: FormVar[A], node: Mod[HtmlElement]) {
+case class FormValue[A](variable: FormVar[A], view: Mod[HtmlElement]) {
   def signal: Signal[Validation[String, A]] =
     variable.signal
 
