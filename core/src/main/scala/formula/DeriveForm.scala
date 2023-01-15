@@ -1,6 +1,5 @@
 package formula
 
-import com.raquo.laminar.api.L._
 import formula.Annotations.{help, label, validation}
 
 import scala.annotation.StaticAnnotation
