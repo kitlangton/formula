@@ -2,7 +2,7 @@ package examples
 
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
-import formula.{DeriveForm, Form, FormValue, Validation}
+import formula.{DeriveForm, Form, Validation}
 
 object Utils {
   def makeForm[A: Form](name: String): Div = {

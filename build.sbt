@@ -54,7 +54,7 @@ lazy val core = project
     name := "formula",
     scalacOptions ++= Seq("-Ymacro-annotations"),
     libraryDependencies ++= Seq(
-      "com.raquo"                    %%% "laminar"       % "0.14.2",
+      "com.raquo"                    %%% "laminar"       % "15.0.0-M2",
       "com.softwaremill.magnolia1_2" %%% "magnolia"      % "1.1.2",
       "org.scala-lang"                 % "scala-reflect" % scalaVersion.value % Provided
     ),
@@ -69,7 +69,7 @@ lazy val examples = project
   .settings(
     name := "formula-examples",
     libraryDependencies ++= Seq(
-      "com.raquo"         %%% "laminar"              % "0.14.2",
+      "com.raquo"         %%% "laminar"              % "15.0.0-M2",
       "io.github.cquiroz" %%% "scala-java-time"      % "2.4.0",
       "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.4.0"
     ),

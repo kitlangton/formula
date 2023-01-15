@@ -1,5 +1,9 @@
+.bloop
 .bsp/
+.metals/
 .idea/
+.vscode/
 node_modules/
 target/
 dist/
+metals.sbt
