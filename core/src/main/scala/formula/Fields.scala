@@ -19,7 +19,6 @@ private[formula] object Fields {
     input(
       config.modifiers,
       stringVar.signal.changes.map(parser).collect { case Some(d) => d } --> { value => variable.set(value) },
-      variable.signal.changes.map(_.value.toString) --> stringVar,
       onKeyPress --> { event =>
         if (event.key.length == 1 && !regex.matches(event.key) && !event.metaKey) event.preventDefault()
         touched.set(true)
@@ -105,7 +104,6 @@ private[formula] object Fields {
         },
         input(
           inputConfig.modifiers,
-          var0.signal.map(s => renderMoney(s.value.toString)) --> stringVar,
           value <-- stringVar.signal,
           inContext { el =>
             onInput.mapToValue --> { string =>

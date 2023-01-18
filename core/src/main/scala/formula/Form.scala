@@ -480,14 +480,17 @@ object Form {
       FormValue(var0, node)
     }
 
-  implicit val int: Form[Int] = {
+  implicit val long: Form[Long] = {
     val intRegex = "[0-9]*".r
     Form.Input.make { config =>
       val var0 = config.validate(FormVar.make(0))
-      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toIntOption, intRegex)
+      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toLongOption, intRegex)
       FormValue(var0, node)
     }
   }
+
+  implicit val int: Form[Int] =
+    long.xmap(_.toInt)(_.toLong)
 
   implicit val double: Form[Double] = {
     val doubleRegex: Regex = "-?\\d*\\.?\\d*e?".r
@@ -497,6 +500,9 @@ object Form {
       FormValue(var0, node)
     }
   }
+
+  implicit val float: Form[Float] =
+    double.xmap(_.toFloat)(_.toDouble)
 
   implicit val localDate: Form[LocalDate] =
     Form.Input.make { config =>
@@ -524,5 +530,5 @@ case class FormValue[A](variable: FormVar[A], view: Mod[HtmlElement]) {
 
   def update(f: A => A): Unit = variable.set(variable.get.map(f).value)
 
-  lazy val $value = signal.map(_.value)
+  lazy val $value: Signal[A] = signal.map(_.value)
 }
