@@ -19,6 +19,7 @@ private[formula] object Fields {
     input(
       config.modifiers,
       stringVar.signal.changes.map(parser).collect { case Some(d) => d } --> { value => variable.set(value) },
+      variable.signal.changes.map(_.value.toString).filterNot(_ == stringVar.now()) --> stringVar,
       onKeyPress --> { event =>
         if (event.key.length == 1 && !regex.matches(event.key) && !event.metaKey) event.preventDefault()
         touched.set(true)
@@ -61,13 +62,13 @@ private[formula] object Fields {
   }
 
   def dateTime(config: InputConfig[LocalDateTime], variable: FormVar[LocalDateTime]): HtmlElement = {
-    val formatter = DateTimeFormatter.ISO_DATE_TIME
+    val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
     input(
       config.modifiers,
       `type`("datetime-local"),
       controlled(
-        value <-- variable.signal.map(_.value.format(formatter)),
+        value <-- variable.signal.map(_.value.withSecond(0).withNano(0).format(formatter)),
         onInput.mapToValue --> { text =>
           val result = LocalDateTime.parse(text, formatter)
           variable.set(result)
@@ -104,6 +105,7 @@ private[formula] object Fields {
         },
         input(
           inputConfig.modifiers,
+          var0.signal.changes.map(s => renderMoney(s.value.toString)).filterNot(_ == stringVar.now()) --> stringVar,
           value <-- stringVar.signal,
           inContext { el =>
             onInput.mapToValue --> { string =>
