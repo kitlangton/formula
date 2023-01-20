@@ -3,6 +3,7 @@ package formula
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
 import formula.Form.{FormValidation, FormVar}
+import org.scalajs.dom.window.setTimeout
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.Try
@@ -128,9 +129,7 @@ object Form {
       formValue
 
     case Many(form) =>
-      val FormValue(var0, node0) = build(form)
-      val countForm              = build(Form.int.label("Count"))
-
+      val countForm = build(Form.int.label("Count"))
       val variables = Var(List.empty[ZVar[A, Validation[String, A]]])
 
       // This is so very ugly.
@@ -140,10 +139,18 @@ object Form {
             acc.zip(v.get).map { case (acc, v) => acc.appended(v) }
           }
 
-        override def set(a: List[A]): Unit =
-          a.zip(variables.now()).foreach { case (a, v) =>
-            v.set(a)
-          }
+        override def set(a: List[A]): Unit = {
+          println(s"set length to ${a.length}")
+          countForm.set(a.length)
+          setTimeout(
+            () =>
+              a.zip(variables.now()).foreach { case (a, v) =>
+                println(s"set variable to $a")
+                v.set(a)
+              },
+            50
+          )
+        }
 
         override def signal: L.Signal[Validation[String, List[A]]] =
           variables.signal.flatMap {
@@ -156,21 +163,19 @@ object Form {
 
       }
 
-      countForm.variable.set(0)
+      countForm.set(0)
       val node = Seq(
         countForm.view,
-        div(children <-- countForm.signal.map(v => (0 until v.value).toList).split(identity) { (id, _, _) =>
-          val formValue = build(form)
+        div(children <-- countForm.$value.map(v => (0 until v).toList).split(identity) { (id, _, _) =>
+          val FormValue(var0, node0) = form.build.asInstanceOf[FormValue[A]]
           if (variables.now().length > id + 1)
-            variables.update(_.updated(id, formValue.variable.asInstanceOf[FormVar[A]]))
+            variables.update(_.updated(id, var0))
           else
-            variables.update(_.appended(formValue.variable.asInstanceOf[FormVar[A]]))
-          div(formValue.view)
+            variables.update(_.appended(var0))
+          div(node0)
         }),
         // Prune extra variables
-        countForm.signal.map(_.value) --> { count =>
-          if (variables.now().length > count) variables.update(_.take(count))
-        },
+        countForm.$value --> { count => if (variables.now().length > count) variables.update(_.take(count)) }
       )
       FormValue(variable.asInstanceOf[FormVar[A]], node)
 
@@ -403,9 +408,9 @@ object Form {
     config =>
       val signal = source.toObservable.toSignalIfStream(_.toSignal(List.empty))
       val var0   = FormVar.make(Option.empty[A])
-      val node = L.select(
+      val node   = L.select(
         config.modifiers,
-        composeEvents(onInput.mapToValue)(_.withCurrentValueOf(signal)) --> Observer[(String, List[A])] {
+        onInput.mapToValue.compose(_.withCurrentValueOf(signal)) --> Observer[(String, List[A])] {
           case (idxString, options) =>
             var0.set(Try(options(idxString.toInt)).toOption)
         },
@@ -474,35 +479,47 @@ object Form {
             onClick.mapToChecked --> { bool =>
               touched.set(true)
               var0.set(bool)
-            },
-          ),
+            }
+          )
         )
       FormValue(var0, node)
     }
 
   implicit val long: Form[Long] = {
-    val intRegex = "[0-9]*".r
+    val longRegex = "[0-9]*".r
     Form.Input.make { config =>
-      val var0 = config.validate(FormVar.make(0))
-      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toLongOption, intRegex)
+      val var0 = config.validate(FormVar.make(0L))
+      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toLongOption, longRegex)
       FormValue(var0, node)
     }
   }
 
-  implicit val int: Form[Int] =
-    long.xmap(_.toInt)(_.toLong)
+  implicit val int: Form[Int] = {
+    val intRegex = "[0-9]*".r
+    Form.Input.make { config =>
+      val var0 = config.validate(FormVar.make(0))
+      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toIntOption, intRegex)
+      FormValue(var0, node)
+    }
+  }
 
   implicit val double: Form[Double] = {
     val doubleRegex: Regex = "-?\\d*\\.?\\d*e?".r
     Form.Input.make { config =>
-      val var0 = FormVar.make(0.0)
+      val var0 = FormVar.make(0.0d)
       val node = Fields.regex(config.copy(inputType = "number"), var0, _.toDoubleOption, doubleRegex)
       FormValue(var0, node)
     }
   }
 
-  implicit val float: Form[Float] =
-    double.xmap(_.toFloat)(_.toDouble)
+  implicit val float: Form[Float] = {
+    val floatRegex: Regex = "-?\\d*\\.?\\d*e?".r
+    Form.Input.make { config =>
+      val var0 = FormVar.make(0.0f)
+      val node = Fields.regex(config.copy(inputType = "number"), var0, _.toFloatOption, floatRegex)
+      FormValue(var0, node)
+    }
+  }
 
   implicit val localDate: Form[LocalDate] =
     Form.Input.make { config =>
