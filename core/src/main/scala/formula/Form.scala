@@ -140,16 +140,8 @@ object Form {
           }
 
         override def set(a: List[A]): Unit = {
-          println(s"set length to ${a.length}")
           countForm.set(a.length)
-          setTimeout(
-            () =>
-              a.zip(variables.now()).foreach { case (a, v) =>
-                println(s"set variable to $a")
-                v.set(a)
-              },
-            50
-          )
+          setTimeout(() => a.zip(variables.now()).foreach { case (a, v) => v.set(a) }, 50)
         }
 
         override def signal: L.Signal[Validation[String, List[A]]] =
