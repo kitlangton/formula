@@ -1,9 +1,9 @@
 package formula
 
+import com.raquo.airstream.ownership.ManualOwner
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L._
 import formula.Form.{FormValidation, FormVar}
-import org.scalajs.dom.window.setTimeout
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.util.Try
@@ -140,8 +140,16 @@ object Form {
           }
 
         override def set(a: List[A]): Unit = {
+          // When the `countForm` is updated, we need to wait for the `variables` to be available before setting their content
+          implicit val owner: ManualOwner = new ManualOwner
+          variables.signal.changes
+            .filter(_.length == a.length)
+            .take(1)
+            .foreach(_.zip(a).foreach { case (v, a) =>
+              v.set(a)
+              owner.killSubscriptions()
+            })
           countForm.set(a.length)
-          setTimeout(() => a.zip(variables.now()).foreach { case (a, v) => v.set(a) }, 50)
         }
 
         override def signal: L.Signal[Validation[String, List[A]]] =
@@ -187,22 +195,26 @@ object Form {
       val bFormVar       = Var(firstFormValue)
 
       def updateSubform(value: Any): Unit = {
-        val form = f(value)
+        val form      = f(value)
         val formValue = memoizedForms.getOrElse(
           form, {
-            println(s"CREATING NEW FORM VALUE FOR $form")
             val formValue = Form.build(form)
             memoizedForms.addOne((form, formValue))
             formValue
-          },
+          }
         )
         bFormVar.set(formValue)
       }
 
       val varB = new ZVar[(Any, Any), Validation[String, (Any, Any)]] {
         override def set(ab: (Any, Any)): Unit = {
+          // When the `varA` is updated, we need to wait for the `bFormVar` to be available before setting its content
+          implicit val owner: ManualOwner = new ManualOwner
+          bFormVar.signal.changes.take(1).foreach { fv =>
+            fv.variable.set(ab._2)
+            owner.killSubscriptions()
+          }
           varA.set(ab._1)
-          bFormVar.now().variable.set(ab._2)
         }
 
         override def get: Validation[String, (Any, Any)] =
@@ -241,15 +253,20 @@ object Form {
             val form = Form.build(f(value))
             memoizedForms.addOne((value, form))
             form
-          },
+          }
         )
         formVar.set(form)
       }
 
       val varB = new ZVar[A, Validation[String, A]] {
         override def set(b: A): Unit = {
+          // When the `varA` is updated, we need to wait for the `formVar` to be available before setting its content
+          implicit val owner: ManualOwner = new ManualOwner
+          formVar.signal.changes.take(1).foreach { fv =>
+            fv.variable.set(b)
+            owner.killSubscriptions()
+          }
           varA.set(g(b))
-          formVar.now().variable.set(b)
         }
 
         override def get: Validation[String, A] =
