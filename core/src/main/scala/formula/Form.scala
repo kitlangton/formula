@@ -145,10 +145,10 @@ object Form {
           variables.signal.changes
             .filter(_.length == a.length)
             .take(1)
-            .foreach(_.zip(a).foreach { case (v, a) =>
-              v.set(a)
+            .foreach { v =>
+              v.zip(a).foreach { case (v, a) => v.set(a) }
               owner.killSubscriptions()
-            })
+            }
           countForm.set(a.length)
         }
 
