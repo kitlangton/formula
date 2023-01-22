@@ -51,7 +51,6 @@ object DeriveForm {
 
       // Add validations
       val validations   = param.annotations.collect { case v: validation[_] => v }
-      //println(s"${label}: VALIDATIONS ${validations}")
       val validatedForm = validations.foldLeft(formWithHelp) { (acc, a) =>
         acc.validate(a.predicate.asInstanceOf[Any => Boolean], a.error)
       }
