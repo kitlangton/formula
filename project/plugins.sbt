@@ -1,4 +1,4 @@
-addSbtPlugin("org.scala-js"     % "sbt-scalajs"    % "1.10.1")
+addSbtPlugin("org.scala-js"     % "sbt-scalajs"    % "1.13.1")
 addSbtPlugin("com.timushev.sbt" % "sbt-updates"    % "0.6.3")
 addSbtPlugin("com.geirsson"     % "sbt-ci-release" % "1.5.7")
 addSbtPlugin("ch.epfl.scala"    % "sbt-scalafix"   % "0.10.1")
