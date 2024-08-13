@@ -153,7 +153,7 @@ object Form {
         }
 
         override def signal: L.Signal[Validation[String, List[A]]] =
-          variables.signal.flatMap {
+          variables.signal.flatMapSwitch {
             _.foldLeft[L.Signal[Validation[String, List[A]]]](Val(Validation(List.empty[A]))) { (acc, v) =>
               acc.combineWithFn(v.signal) { case (l, r) =>
                 l.zip(r).map { case (as, a) => as.appended(a) }
@@ -221,7 +221,7 @@ object Form {
           varA.get zip bFormVar.now().variable.get
 
         override def signal: Signal[Validation[String, (Any, Any)]] =
-          bFormVar.signal.flatMap { bForm =>
+          bFormVar.signal.flatMapSwitch { bForm =>
             varA.signal.combineWithFn(bForm.variable.signal)(_ zip _)
           }
       }
@@ -273,7 +273,7 @@ object Form {
           formVar.now().variable.get
 
         override def signal: Signal[Validation[String, A]] =
-          formVar.signal.flatMap(_.variable.signal)
+          formVar.signal.flatMapSwitch(_.variable.signal)
       }
 
       val node =
